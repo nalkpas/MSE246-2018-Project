@@ -7,7 +7,7 @@ data = pd.read_excel("SBA_Loan_data_.xlsx", "Sheet1")
 data = data[data.LoanStatus != 'CANCLD']
 data = data[data.LoanStatus != 'EXEMPT']
 data = data.drop(columns=['Program'])
-# drops 2 entries, one in Puerto Rico and one that's nonsense
+# drops 2 entries, one in Puerto Rico and one that's garbage
 data = data.dropna(subset=['BorrState'])
 
 # specify that NAICS and ZIP codes are categorical, need to fill these before casting
