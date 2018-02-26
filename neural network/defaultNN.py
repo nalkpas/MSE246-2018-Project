@@ -30,7 +30,7 @@ class Net(nn.Module):
 		x = F.relu(self.lin3(x))
 		x = F.relu(self.lin4(x))
 		x = F.relu(self.lin5(x))
-		return x.view(x.size(0),2)
+		return x.squeeze(1)
 
 model = Net()
 criterion = nn.CrossEntropyLoss()
@@ -50,9 +50,11 @@ class DefaultDataset(Dataset):
 
 	def __getitem__(self,idx):
 		covariates = self.frame.drop(columns=["Default?"])
-		covariates = FloatTensor(covariates[idx:idx+1].as_matrix())
-		defaults = self.frame["Default?"]
-		defaults = LongTensor(defaults[idx:idx+1].as_matrix())
+		covariates = FloatTensor(covariates[idx:idx+1].values)
+		defaults = defaults[idx:idx+1]["Default?"].values
+		if np.max(defaults) != 1:
+			import pdb
+			pdb.set_trace()
 		sample = {"X": covariates, "Y": defaults}
 		return sample
 
@@ -64,7 +66,7 @@ print_interval = 100
 for epoch in range(num_epochs):
 	running_loss = 0.
 	for i, batch in enumerate(train_loader):
-		X, Y = Variable(batch["X"]), Variable(batch["Y"]).squeeze(1)
+		X, Y = Variable(batch["X"]), Variable(batch["Y"]).squeeze()
 
 		optimizer.zero_grad()
 		predictions = model(X)
