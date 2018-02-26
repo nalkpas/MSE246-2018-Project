@@ -55,6 +55,7 @@ class DefaultDataset(Dataset):
 		if np.max(defaults) != 1:
 			import pdb
 			pdb.set_trace()
+		defaults = LongTensor(defaults)
 		sample = {"X": covariates, "Y": defaults}
 		return sample
 
@@ -67,10 +68,10 @@ for epoch in range(num_epochs):
 	running_loss = 0.
 	for i, batch in enumerate(train_loader):
 		X, Y = Variable(batch["X"]), Variable(batch["Y"]).squeeze()
-
-		optimizer.zero_grad()
+		
 		predictions = model(X)
 		loss = criterion(predictions, Y)
+		optimizer.zero_grad()
 		loss.backward()
 		optimizer.step()
 
