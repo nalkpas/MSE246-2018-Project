@@ -24,11 +24,8 @@ def get_hidden_units(n_hidden_layers,n_in,n_out):
 		return n_hidden_units
 	elif(n_hidden_layers>1):
 		r = (n_in/n_out)**(1./(n_hidden_layers+1))
-		print("This is r "+str(r))
 		for i in range(n_hidden_layers):
-			print("This is i "+str(i))
 			temp_hidden_units = round(n_out*(r**(n_hidden_layers-i)))
-			print("This is hidden units "+ str(temp_hidden_units))
 			n_hidden_units.insert(i, temp_hidden_units)
 		return n_hidden_units
 
