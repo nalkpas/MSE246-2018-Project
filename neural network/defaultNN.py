@@ -24,13 +24,13 @@ def get_hidden_units(n_layers,n_in,n_out):
 		n_hidden_units.insert(n_layers-1,n_out)
 		return n_hidden_units
 	if(n_hidden_layers==1):
-		n_hidden_units.insert(1,(n_in*n_out)**(1/2))
+		n_hidden_units.insert(1,int((n_in*n_out)**(.1/2)))
 		n_hidden_units.insert(n_layers-1,n_out)
 		return n_hidden_units
 	elif(n_hidden_layers>1):
 		r = (n_in/n_out)**(1./(n_hidden_layers+1))
 		for i in range(n_hidden_layers):
-			temp_hidden_units = round(n_out*(r**(n_hidden_layers-i)))
+			temp_hidden_units = int(n_out*(r**(n_hidden_layers-i)))
 			n_hidden_units.insert(i+1, temp_hidden_units)
 		n_hidden_units.insert(n_layers-1,n_out)
 		return n_hidden_units
@@ -39,11 +39,9 @@ class Net(nn.Module):
 	def __init__(self, n_layers, n_in, n_out):
 		super(Net, self).__init__()
 		n_hidden_units = get_hidden_units(n_layers, n_in, n_out)
-		nn_dict = {}
 		for i in range(n_layers-1):
 			temp_nn = nn.Linear(n_hidden_units[i],n_hidden_units[i+1])
 			self.add_module("linear"+str(i),temp_nn)
-			nn_dict["linear"+str(i)] = temp_nn
 
 	def forward(self, x):
 		nn_list= self.children()
