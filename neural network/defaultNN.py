@@ -83,12 +83,10 @@ for epoch in range(num_epochs):
 	for i, batch in enumerate(train_loader):
 		X, Y = Variable(batch["X"]), Variable(batch["Y"]).squeeze()
 		
-		if np.max(Y.data.numpy()) > 1:
-			pdb.set_trace()
-		
-		optimizer.zero_grad()
 		predictions = model(X)
 		loss = criterion(predictions, Y)
+
+		optimizer.zero_grad()
 		loss.backward()
 		optimizer.step()
 
