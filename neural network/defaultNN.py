@@ -1,8 +1,7 @@
 import numpy as np
 import pandas as pd 
 import random
-import matplotlib
-import matplotlib.pyplot as plt
+import pdb
 
 import torch
 import torch.nn as nn
@@ -51,11 +50,7 @@ class DefaultDataset(Dataset):
 	def __getitem__(self,idx):
 		covariates = self.frame.drop(columns=["Default?"])
 		covariates = FloatTensor(covariates[idx:idx+1].values)
-		defaults = defaults[idx:idx+1]["Default?"].values
-		if np.max(defaults) != 1:
-			import pdb
-			pdb.set_trace()
-		defaults = LongTensor(defaults)
+		defaults = LongTensor(self.frame[idx:idx+1]["Default?"].values*1)
 		sample = {"X": covariates, "Y": defaults}
 		return sample
 
@@ -69,9 +64,12 @@ for epoch in range(num_epochs):
 	for i, batch in enumerate(train_loader):
 		X, Y = Variable(batch["X"]), Variable(batch["Y"]).squeeze()
 		
+		if np.max(Y.data.numpy()) > 1:
+			pdb.set_trace()
+
+		optimizer.zero_grad()
 		predictions = model(X)
 		loss = criterion(predictions, Y)
-		optimizer.zero_grad()
 		loss.backward()
 		optimizer.step()
 
