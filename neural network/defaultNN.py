@@ -78,4 +78,13 @@ for epoch in range(num_epochs):
 			print('[%d, %5d] loss: %.3f' %
 				  (epoch + 1, i + 1, running_loss / print_interval))
 			running_loss = 0.
+
+# saving and loading parameters 
+# model.save_state_dict("output.pt")
+# model.load_state_dict(torch.load("output.pt"))
+
+# saving the whole model
+# model.save("output.pt")
+# model = torch.load("model.pt")
+
 print("done")
