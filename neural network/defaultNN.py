@@ -14,40 +14,45 @@ FloatTensor = torch.FloatTensor
 LongTensor = torch.LongTensor
 ByteTensor = torch.ByteTensor
 
-n_hidden_layers,n_in,n_out = 3,26,2
+n_layers,n_in,n_out = 5,26,2
 
-def get_hidden_units(n_hidden_layers,n_in,n_out):
+def get_hidden_units(n_layers,n_in,n_out):
 	n_hidden_units = []
-	
+	n_hidden_layers = n_layers-2
+	n_hidden_units.insert(0,n_in)
+	if(n_hidden_layers ==0):
+		n_hidden_units.insert(n_layers-1,n_out)
+		return n_hidden_units
 	if(n_hidden_layers==1):
-		n_hidden_units.insert(0,(n_in*n_out)**(1/2))
+		n_hidden_units.insert(1,(n_in*n_out)**(1/2))
+		n_hidden_units.insert(n_layers-1,n_out)
 		return n_hidden_units
 	elif(n_hidden_layers>1):
 		r = (n_in/n_out)**(1./(n_hidden_layers+1))
 		for i in range(n_hidden_layers):
 			temp_hidden_units = round(n_out*(r**(n_hidden_layers-i)))
-			n_hidden_units.insert(i, temp_hidden_units)
+			n_hidden_units.insert(i+1, temp_hidden_units)
+		n_hidden_units.insert(n_layers-1,n_out)
 		return n_hidden_units
 
-
 class Net(nn.Module):
-	def __init__(self):
+	def __init__(self, n_layers, n_in, n_out):
 		super(Net, self).__init__()
-		self.lin1 = nn.Linear(26, 10)
-		self.lin2 = nn.Linear(10, 20)
-		self.lin3 = nn.Linear(20, 40)
-		self.lin4 = nn.Linear(40, 20)
-		self.lin5 = nn.Linear(20, 2)
+		n_hidden_units = get_hidden_units(n_layers, n_in, n_out)
+		nn_dict = {}
+		for i in range(n_layers-1):
+			temp_nn = nn.Linear(n_hidden_units[i],n_hidden_units[i+1])
+			self.add_module("linear"+str(i),temp_nn)
+			nn_dict["linear"+str(i)] = temp_nn
 
 	def forward(self, x):
-		x = F.relu(self.lin1(x))
-		x = F.relu(self.lin2(x))
-		x = F.relu(self.lin3(x))
-		x = F.relu(self.lin4(x))
-		x = F.relu(self.lin5(x))
+		nn_list= self.children()
+		for nn in nn_list:
+			x = F.relu(nn(x))
 		return x.squeeze(1)
 
-model = Net()
+model = Net(n_layers,n_in,n_out)
+
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters())
 
