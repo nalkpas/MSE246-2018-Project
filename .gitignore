@@ -1,3 +1,6 @@
 .idea/
 cleaning/.DS_Store
 cleaning/.DS_Store
+.DS_Store
+.vscode/
+test.py
