@@ -11,6 +11,9 @@ test <- read.csv(file="MSE246-2018-Project/hazard\ model/hazard_test.csv", head=
 ## subpgmdesc, TermInMonths, NaicsCode, ProjectCounty, ProjectState
 ## BusinessType, GrossChargeOffAmount
 
+# Just retrieve the loans that were chargeoffs, if we only want to fit this to our hazard model
+train_chargeoffs <- train[train$Default == 1,] 
+
 res.cox <- coxph(Surv(DaysToDefault, Default.) ~ 
   DeliveryMethod + ThirdPartyDollars + BusinessType + TermInMonths + GrossApproval + BorrState, data = train)
 summary(res.cox)
@@ -18,6 +21,7 @@ summary(res.cox)
 # Plot the baseline survival function
 ggsurvplot(survfit(res.cox, data=train), palette = "#2E9FDF",
            ggtheme = theme_minimal())
+##plot(survfit(res.cox, data=train_chargeoffs))
 
 # Plot the survival function for a single test datapoint
 test[1,]
@@ -33,5 +37,6 @@ results <- cbind(results, expected=predict(res.cox, newdata=modified_test, type=
 results <- cbind(results, terms=predict(res.cox, newdata=modified_test, type="terms"))
 head(results)
 
-# https://www.r-bloggers.com/cox-proportional-hazards-model/
-# https://rdrr.io/cran/survivalROC/man/survivalROC.C.html
+## https://www.r-bloggers.com/cox-proportional-hazards-model/
+## https://rdrr.io/cran/survivalROC/man/survivalROC.C.html
+## https://rpubs.com/grigory/CoxPHwithRandAsterR
