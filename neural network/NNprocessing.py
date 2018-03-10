@@ -4,7 +4,7 @@ import pdb
 
 data = pd.read_csv("data/output_with_missing_v2.csv", index_col=0)
 data = data.drop(columns=["BorrName", "BorrStreet", "GrossApproval", "TermInMonths", 
-				 "ChargeOffDate", "CDC_Street", "LoanStatus", "ThirdPartyLender_Name", "ProjectCounty","NaicsDescription"])
+				 "ChargeOffDate", "CDC_Name", "CDC_Street", "LoanStatus", "ThirdPartyLender_Name", "ProjectCounty","NaicsDescription"])
 
 numerics = data.select_dtypes(include=[np.number,'bool'])
 cats = data.drop(columns=numerics.columns)
