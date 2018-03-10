@@ -45,7 +45,7 @@ class Net(nn.Module):
 
 	def forward(self, x):
 		for layer in self.children():
-			x = layer(x)
+			x = F.relu(layer(x))
 		return x.squeeze(1)
 
 # hyperparameters
@@ -95,6 +95,8 @@ for epoch in range(num_epochs):
 
 		optimizer.zero_grad()
 		loss.backward()
+		for param in model.parameters():
+			param.grad.data.clamp_(-100, 100)
 		optimizer.step()
 
 		running_loss += loss.data[0]
