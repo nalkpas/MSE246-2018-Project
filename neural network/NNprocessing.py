@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd 
 import pdb
 
-data = pd.read_csv("output_with_missing_v2.csv", index_col=0)
+data = pd.read_csv("data/output_with_missing_v2.csv", index_col=0)
 data = data.drop(columns=["BorrName", "BorrStreet", "GrossApproval", "TermInMonths", 
 				 "ChargeOffDate", "CDC_Street", "LoanStatus", "ThirdPartyLender_Name", "ProjectCounty","NaicsDescription"])
 
@@ -43,7 +43,7 @@ train_data = data[:train_end_index]
 dev_data = data[train_end_index:dev_end_index]
 test_data = data[dev_end_index:]
 
-train_data.to_csv('nn_train.csv',index=False)
-dev_data.to_csv('nn_dev.csv',index=False)
-test_data.to_csv('nn_test.csv',index=False)
+train_data.to_csv('data/nn_train.csv',index=False)
+dev_data.to_csv('data/nn_dev.csv',index=False)
+test_data.to_csv('data/nn_test.csv',index=False)
 
