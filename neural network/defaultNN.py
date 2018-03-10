@@ -14,50 +14,8 @@ FloatTensor = torch.FloatTensor
 LongTensor = torch.LongTensor
 ByteTensor = torch.ByteTensor
 
-n_layers,n_in,n_out = 5,26,2
-
-def get_hidden_units(n_layers,n_in,n_out):
-	n_hidden_units = []
-	n_hidden_layers = n_layers-2
-	n_hidden_units.insert(0,n_in)
-	if(n_hidden_layers ==0):
-		n_hidden_units.insert(n_layers-1,n_out)
-		return n_hidden_units
-	if(n_hidden_layers==1):
-		n_hidden_units.insert(1,int((n_in*n_out)**(.1/2)))
-		n_hidden_units.insert(n_layers-1,n_out)
-		return n_hidden_units
-	elif(n_hidden_layers>1):
-		r = (n_in/n_out)**(1./(n_hidden_layers+1))
-		for i in range(n_hidden_layers):
-			temp_hidden_units = int(n_out*(r**(n_hidden_layers-i)))
-			n_hidden_units.insert(i+1, temp_hidden_units)
-		n_hidden_units.insert(n_layers-1,n_out)
-		return n_hidden_units
-
-class Net(nn.Module):
-	def __init__(self, n_layers, n_in, n_out):
-		super(Net, self).__init__()
-		n_hidden_units = get_hidden_units(n_layers, n_in, n_out)
-		for i in range(n_layers-1):
-			temp_nn = nn.Linear(n_hidden_units[i],n_hidden_units[i+1])
-			self.add_module("linear"+str(i),temp_nn)
-
-	def forward(self, x):
-		nn_list= self.children()
-		for nn in nn_list:
-			x = F.relu(nn(x))
-		return x.squeeze(1)
-
-model = Net(n_layers,n_in,n_out)
-
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters())
-
-train_data = pd.read_csv("train.csv")
-train_data = train_data.drop(columns=["BorrName", "BorrStreet", "GrossApproval", "TermInMonths", 
-				 "ChargeOffDate", "GrossChargeOffAmount_Norm", "GrossChargeOffAmount_Norm", 
-				 "LoanStatus"])
+###### load data ######
+train_data = pd.read_csv("nn_train.csv", index_col=0).astype(float)
 
 class DefaultDataset(Dataset):
 	def __init__(self, dataframe):
@@ -67,14 +25,43 @@ class DefaultDataset(Dataset):
 		return len(self.frame)
 
 	def __getitem__(self,idx):
-		covariates = self.frame.drop(columns=["Default?"])
+		covariates = self.frame.drop(columns=["Default?","GrossChargeOffAmount"])
 		covariates = FloatTensor(covariates[idx:idx+1].values)
 		defaults = LongTensor(self.frame[idx:idx+1]["Default?"].values*1)
 		sample = {"X": covariates, "Y": defaults}
 		return sample
 
 train_set = DefaultDataset(train_data)
-train_loader = torch.utils.data.DataLoader(train_set, batch_size=100, shuffle=True, num_workers = 2)
+train_loader = torch.utils.data.DataLoader(train_set, batch_size=100, shuffle=False, num_workers = 2)
+
+class Net(nn.Module):
+	def __init__(self, layers_size):
+		super(Net, self).__init__()
+		self.layers = []
+		for layer in layers_size.items():
+			temp_nn = nn.Linear(n_hidden_units[i],n_hidden_units[i+1])
+			self.add_module("linear"+str(i),temp_nn)
+
+	def forward(self, x):
+		nn_list= self.children()
+		for nn in nn_list:
+			x = F.relu(nn(x))
+		return x.squeeze(1)
+
+pdb.set_trace()
+n_out = 3
+n_in = train_data.shape[1]
+n_layers = np.random.randint(5,8)
+
+layers_size = {0:np.random.randint(n_out,n_in)}
+
+for i in range(1,n_layers):
+	layers_size[i] = np.random.randint(n_out,layers_size[i - 1] + 2)
+
+model = Net(n_layers,n_in,n_out)
+
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters())
 
 num_epochs = 2
 print_interval = 100
@@ -82,6 +69,7 @@ for epoch in range(num_epochs):
 	running_loss = 0.
 	for i, batch in enumerate(train_loader):
 		X, Y = Variable(batch["X"]), Variable(batch["Y"]).squeeze()
+		pdb.set_trace()
 		
 		predictions = model(X)
 		loss = criterion(predictions, Y)
