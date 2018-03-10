@@ -40,3 +40,6 @@ head(results)
 ## https://www.r-bloggers.com/cox-proportional-hazards-model/
 ## https://rdrr.io/cran/survivalROC/man/survivalROC.C.html
 ## https://rpubs.com/grigory/CoxPHwithRandAsterR
+
+# https://stats.stackexchange.com/questions/291242/how-do-i-get-the-hazard-rate-from-a-cox-proportional-h
+# http://blog.applied.ai/survival-analysis-part-4/
