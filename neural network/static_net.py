@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd 
 import random
 import pdb
+import time
 
 import torch
 import torch.nn as nn
@@ -78,7 +79,8 @@ class Net(nn.Module):
 # initialize model
 model = Net()
 try: 
-	model.load_state_dict(torch.load("models/static_net.pt"))
+	model.load_state_dict(torch.load("static_net.pt"))
+	print("loaded saved model")
 except:
 	print("no saved model")
 criterion = nn.SmoothL1Loss()
@@ -87,6 +89,7 @@ optimizer = optim.Adam(model.parameters())
 # training
 num_epochs = 2
 print_interval = 100
+start = time.time()
 for epoch in range(num_epochs):
 	running_loss = 0.
 	for i, batch in enumerate(train_loader):
@@ -106,8 +109,8 @@ for epoch in range(num_epochs):
 			print('[%d, %5d] loss: %.3f' %
 				  (epoch + 1, i + 1, running_loss / print_interval))
 			running_loss = 0.
+end = time.time()
 
+torch.save(model.state_dict(), "static_net.pt")
 
-torch.save(model.state_dict(), "models/output.pt")
-
-print("done")
+print("done: " + str(end - start) + "s")
