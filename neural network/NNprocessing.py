@@ -2,18 +2,26 @@ import numpy as np
 import pandas as pd 
 import pdb
 
-data = pd.read_csv("data/output_with_missing_v2.csv", index_col=0)
-data = data.drop(columns=["BorrName", "BorrStreet", "GrossApproval", "TermInMonths", 
-				 "ChargeOffDate", "CDC_Name", "CDC_Street", "LoanStatus", "ThirdPartyLender_Name", "ProjectCounty", "NaicsDescription"])
+data = pd.read_csv("data/sorted_data_processed0310.csv", index_col=0)
+data = data[data.LoanStatus != 'MISSING']
 
-numerics = data.select_dtypes(include=[np.number,'bool'])
-cats = data.drop(columns=numerics.columns)
-cats = cats.drop(columns=['ApprovalDate'])
+dropped_columns = ['ChargeOffDate', 'BorrZip', 'CDC_Zip','CDC_City', 'ThirdPartyLender_City', 'ProjectCounty']
+data = data.drop(columns=dropped_columns)
 
-lookups = {}
-for column in cats.columns:
-	cats[column],uniques = pd.factorize(cats[column])
-	lookups[column] = dict(enumerate(uniques))
+# numerics = data.select_dtypes(include=[np.number,'bool'])
+# cats = data.drop(columns=numerics.columns)
+# cats = cats.drop(columns=['ApprovalDate', 'LoanStatus'])
+# lookups = {}
+# for column in cats.columns:
+# 	cats[column], uniques = pd.factorize(cats[column])
+# 	lookups[column] = dict(enumerate(uniques))
+# data.update(cats)
+# with open('data/nn_lookups.txt','w') as file:
+# 	for column, table in lookups.items():
+# 		file.write(str(column) + "\n")
+# 		for token, name in table.items():
+# 			file.write(str(token) + "," + str(name) + "\n")
+# 		file.write("\n")
 
 def date_hash(date):
 	y,m,d = map(int,date.strip().split('-'))
@@ -23,17 +31,7 @@ dates = data['ApprovalDate'].copy()
 for index in range(len(data)):
 	dates[index:index+1] = date_hash(dates[index:index+1].values[0])
 
-data.update(cats)
 data.update(dates)
-
-pdb.set_trace()
-
-with open('nn_lookups.txt','w') as file:
-	for column, table in lookups.items():
-		file.write(str(column) + "\n")
-		for token, name in table.items():
-			file.write(str(token) + "," + str(name) + "\n")
-		file.write("\n")
 
 shuffled = data.sample(frac=1)
 train_end_index = int(round(data.shape[0] * .8))
