@@ -16,7 +16,6 @@ LongTensor = torch.LongTensor
 ByteTensor = torch.ByteTensor
 
 # process data
-
 train_data = pd.read_csv("data/random_train0314.csv")
 test_data = pd.read_csv("data/random_test0314.csv")
 val_data = pd.read_csv("data/random_val0314.csv")
@@ -60,17 +59,17 @@ class DefaultDataset(Dataset):
 		return sample
 
 # hyperparameters
-n_layers = 15
+n_layers = 7
 n_out = 2.
 n_in = x_train.shape[1]
 decay = 0.03
 batch_size = 100
 
 # load data
-train_set = DefaultDataset(x_train, y_train)
-train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers = 2)
+val_set = DefaultDataset(x_val, y_val)
+val_loader = torch.utils.data.DataLoader(val_set, batch_size=len(y_val), shuffle=False, num_workers = 2)
 
-# define model
+# initialize model
 layers_size = {-1: n_in}
 factor = (n_out/n_in)**(1/(n_layers))
 for layer in range(n_layers):
@@ -96,50 +95,15 @@ class Net(nn.Module):
 			x = layer(x)
 		return x.squeeze()
 
-# initialize model
 model = Net(modules)
 try: 
 	model.load_state_dict(torch.load("default_net_" + str(n_layers) + ".pt"))
 	print("loaded saved model")
 except:
 	print("no saved model")
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), weight_decay = decay)
+model.eval()
 
-# training
-num_epochs = 10
-print_interval = 100
-iterations = [0]
-losses = []
-start = time.time()
-for epoch in range(num_epochs):
-	running_loss = 0.
-	for i, batch in enumerate(train_loader):
-		X, Y = Variable(batch["X"]), Variable(batch["Y"],requires_grad=False).squeeze()
-
-		predictions = model(X)
-		loss = criterion(predictions, Y)
-		if i == 0: 
-			losses.append(loss)
-
-		# pdb.set_trace()
-
-		optimizer.zero_grad()
-		loss.backward()
-		optimizer.step()
-
-		running_loss += loss.data[0]
-		if i % print_interval == print_interval - 1:
-			print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / print_interval))
-			iterations.append(iterations[-1] + print_interval*batch_size)
-			losses.append(running_loss / print_interval)
-			running_loss = 0.
-end = time.time()
-
-torch.save(model.state_dict(), "default_net_" + str(n_layers) + ".pt")
-with open("default_net_" + str(n_layers) + ".csv", "w") as file:
-	file.write("iteration,loss\n")
-	for iteration, loss in zip(iterations, losses):
-		file.write(str(iteration) + "," + str(loss) + "\n")
-
-print("done: " + str(end - start) + "s")
+for batch in val_loader:
+	X, Y = Variable(batch["X"]), Variable(batch["Y"],requires_grad=False).squeeze()
+	pdb.set_trace()
+	val_preds = model(X)
