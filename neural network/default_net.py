@@ -16,7 +16,6 @@ LongTensor = torch.LongTensor
 ByteTensor = torch.ByteTensor
 
 # process data
-
 train_data = pd.read_csv("data/random_train0314.csv")
 test_data = pd.read_csv("data/random_test0314.csv")
 val_data = pd.read_csv("data/random_val0314.csv")
