@@ -15,18 +15,7 @@ FloatTensor = torch.FloatTensor
 LongTensor = torch.LongTensor
 ByteTensor = torch.ByteTensor
 
-# load data 
-# train_data = pd.read_csv("data/nn_train.csv", index_col=0)
-# train_data = train_data.drop(columns='GrossChargeOffAmount')
-# train_data = train_data.fillna(0)
-
-# categorical_vars = ['CDC_State', 'ThirdPartyLender_State', 'DeliveryMethod', 'subpgmdesc', 'ProjectState', 'BusinessType', 
-# 					'TermMultipleYear', 'RepeatBorrower', 'BankStateneqBorrowerState', 'ProjectStateneqBorrowerState', '2DigitNaics']
-# for var in categorical_vars:
-# 	train_data[var] = train_data[var].astype('category')
-# train_data = pd.get_dummies(train_data, columns = train_data.columns.delete(train_data.columns.get_loc('LoanStatus')))
-
-# load data
+# process data
 
 train_data = pd.read_csv("data/random_train0310.csv")
 test_data = pd.read_csv("data/random_test0310.csv")
@@ -46,45 +35,48 @@ x_train = train_data[c]
 x_test = test_data[c]
 x_val = val_data[c]
 
-print(train_data.shape)
+numerics = x_train.select_dtypes(include=[np.number,'bool'])
+cats = x_train.drop(columns=numerics.columns)
+x_train = pd.get_dummies(x_train, columns = cats.columns)
+x_test = pd.get_dummies(x_test, columns = cats.columns)
+x_val = pd.get_dummies(x_val, columns = cats.columns)
 
-numerics = train_data.select_dtypes(include=[np.number,'bool'])
-cats = train_data.drop(columns=numerics.columns)
-x_train = pd.get_dummies(train_data, columns = cats.columns)
-test_data = pd.get_dummies(test_data, columns = cats.columns)
-val_data = pd.get_dummies(val_data, columns = cats.columns)
+print(x_train.shape)
 
-print(train_data.shape)
-for column in train_data.columns:
-	print(column)
-pdb.set_trace()
+y_train = (train_data['LoanStatus'].values == "CHGOFF")*1
+y_test = (test_data['LoanStatus'].values == "CHGOFF")*1
+y_val = (val_data['LoanStatus'].values == "CHGOFF")*1
+
+print(y_train.shape)
 
 class DefaultDataset(Dataset):
-	def __init__(self, dataframe):
-		self.frame = dataframe
+	def __init__(self, x, y):
+		self.x = x
+		self.y = y
 
 	def __len__(self):
-		return len(self.frame)
+		return len(self.y)
 
 	def __getitem__(self,idx):
-		covariates = self.frame.drop(columns=['LoanStatus'])
-		covariates = FloatTensor(covariates[idx:idx+1].values)
-		defaults = LongTensor((self.frame.LoanStatus[idx:idx+1].values == 'CHGOFF')*1).squeeze()
+		covariates = FloatTensor(self.x[idx:idx+1].values)
+		defaults = LongTensor(self.y[idx:idx+1])
 		sample = {"X": covariates, "Y": defaults}
 		return sample
 
-train_set = DefaultDataset(train_data)
-train_loader = torch.utils.data.DataLoader(train_set, batch_size=100, shuffle=True, num_workers = 2)
-
 # hyperparameters
-n_layers = 3
+n_layers = 24
 n_out = 2.
-n_in = train_data.shape[1] - 1
-decay = 1.
+n_in = x_train.shape[1]
+decay = 0.03
+batch_size = 100
+
+# load data
+train_set = DefaultDataset(x_train, y_train)
+train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers = 2)
 
 # define model
 layers_size = {-1: n_in}
-factor = (n_out/n_in)**(1/n_layers)
+factor = (n_out/n_in)**(1/(n_layers))
 for layer in range(n_layers):
 	layers_size[layer] = int(np.rint(n_in * factor**(layer + 1)))
 modules = []
@@ -116,19 +108,23 @@ try:
 except:
 	print("no saved model")
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters())
+optimizer = optim.Adam(model.parameters(), weight_decay = decay)
 
 # training
-num_epochs = 2
+num_epochs = 25
 print_interval = 100
+iterations = [0]
+losses = []
 start = time.time()
 for epoch in range(num_epochs):
 	running_loss = 0.
 	for i, batch in enumerate(train_loader):
-		X, Y = Variable(batch["X"]), Variable(batch["Y"],requires_grad=False)
+		X, Y = Variable(batch["X"]), Variable(batch["Y"],requires_grad=False).squeeze()
 
 		predictions = model(X)
 		loss = criterion(predictions, Y)
+		if i == 0: 
+			losses.append(loss)
 
 		# pdb.set_trace()
 
@@ -138,11 +134,16 @@ for epoch in range(num_epochs):
 
 		running_loss += loss.data[0]
 		if i % print_interval == print_interval - 1:
-			print('[%d, %5d] loss: %.3f' %
-				  (epoch + 1, i + 1, running_loss / print_interval))
+			print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / print_interval))
+			iterations.append(iterations[-1] + print_interval*batch_size)
+			losses.append(running_loss / print_interval)
 			running_loss = 0.
 end = time.time()
 
 torch.save(model.state_dict(), "default_net_" + str(n_layers) + ".pt")
+with open("default_net_" + str(n_layers) + ".csv", "w") as file:
+	file.write("iteration,loss\n")
+	for iteration, loss in zip(iterations, losses):
+		file.write(str(iteration) + "," + str(loss) + "\n")
 
 print("done: " + str(end - start) + "s")
