@@ -17,19 +17,26 @@ ByteTensor = torch.ByteTensor
 
 # process data
 
-train_data = pd.read_csv("data/random_train0310.csv")
-test_data = pd.read_csv("data/random_test0310.csv")
-val_data = pd.read_csv("data/random_val0310.csv")
+train_data = pd.read_csv("data/random_train0314.csv")
+test_data = pd.read_csv("data/random_test0314.csv")
+val_data = pd.read_csv("data/random_val0314.csv")
 
-train_data = train_data[train_data.LoanStatus != "MISSING"]
-test_data = test_data[test_data.LoanStatus != "MISSING"]
-val_data = val_data[val_data.LoanStatus != "MISSING"]
+def date_hash(date):
+	print(date)
+	date, _ = date.strip().split(" ", 1)
+	y,m,d = map(int,date.split('-'))
+	return y*10**4 + m*10**2 + d
+
+dates = ['ChargeOffDate']
+train_data[dates] = train_data.ChargeOffDate.map(date_hash)
+test_data[dates] = test_data.ChargeOffDate.map(date_hash)
+val_data[dates] = val_data.ChargeOffDate.map(date_hash)
 
 c = train_data.columns.tolist()
 dropped_columns = ['LoanStatus', 'ChargeOffDate', 'GrossChargeOffAmount', 'BorrZip', 'CDC_Zip', 'BorrCity',
-                   'CDC_City', 'ThirdPartyLender_City', 'ProjectCounty', 'ApprovalDate']
+				   'CDC_City', 'ThirdPartyLender_City', 'ProjectCounty', 'ApprovalDate']
 for col in dropped_columns:
-    c.remove(col)
+	c.remove(col)
 
 x_train = train_data[c]
 x_test = test_data[c]

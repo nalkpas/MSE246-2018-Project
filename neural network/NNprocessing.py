@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd 
 import pdb
 
-data = pd.read_csv("data/sorted_data_processed0310.csv", index_col=0)
+data = pd.read_csv("data/random_data_processed0314.csv", index_col=0)
 data = data[data.LoanStatus != 'MISSING']
 
 dropped_columns = ['ChargeOffDate', 'BorrZip', 'CDC_Zip','CDC_City', 'ThirdPartyLender_City', 'ProjectCounty']
