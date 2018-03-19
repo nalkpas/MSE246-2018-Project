@@ -15,6 +15,9 @@ FloatTensor = torch.FloatTensor
 LongTensor = torch.LongTensor
 ByteTensor = torch.ByteTensor
 
+# hyperparameters
+n_layers = 3
+
 # process data
 train_data = pd.read_csv("data/random_train0314.csv")
 test_data = pd.read_csv("data/random_test0314.csv")
@@ -44,6 +47,21 @@ y_val = (val_data['LoanStatus'].values == "CHGOFF")*1
 
 print(y_train.shape)
 
+def add_missing_columns(d1, d2):
+    missing_cols_2 = (set(d1.columns) - set(d2.columns))
+    missing_cols_1 = (set(d2.columns) - set(d1.columns))
+    for c in missing_cols_2:
+        d2[c] = 0
+    for c in missing_cols_1:
+        d1[c] = 0
+    return d1, d2
+
+x_train, x_test = add_missing_columns(x_train, x_test)
+x_train, x_val = add_missing_columns(x_train, x_val)
+x_test, x_val = add_missing_columns(x_test, x_val)
+
+print(x_train.shape)
+
 class DefaultDataset(Dataset):
 	def __init__(self, x, y):
 		self.x = x
@@ -58,16 +76,13 @@ class DefaultDataset(Dataset):
 		sample = {"X": covariates, "Y": defaults}
 		return sample
 
-# hyperparameters
-n_layers = 7
+# network input and output size
 n_out = 2.
 n_in = x_train.shape[1]
-decay = 0.03
-batch_size = 100
 
 # load data
 val_set = DefaultDataset(x_val, y_val)
-val_loader = torch.utils.data.DataLoader(val_set, batch_size=len(y_val), shuffle=False, num_workers = 2)
+val_loader = torch.utils.data.DataLoader(val_set, batch_size=100, shuffle=False, num_workers = 2)
 
 # initialize model
 layers_size = {-1: n_in}
@@ -80,8 +95,8 @@ print(layers_size)
 for i in layers_size.keys():
 	if i == -1: continue
 	modules.append(nn.Linear(layers_size[i-1],layers_size[i]))
-	# if i == 0:
-	# 	modules.append(nn.BatchNorm1d(layers_size[i]))
+	if i < np.rint(n_layers / 3):
+		modules.append(nn.BatchNorm1d(num_features = layers_size[i]))
 	modules.append(nn.ReLU())
 
 class Net(nn.Module):
@@ -97,13 +112,13 @@ class Net(nn.Module):
 
 model = Net(modules)
 try: 
-	model.load_state_dict(torch.load("default_net_" + str(n_layers) + ".pt"))
+	model.load_state_dict(torch.load("models/default_net_" + str(n_layers) + ".pt"))
 	print("loaded saved model")
 except:
 	print("no saved model")
 model.eval()
 
 for batch in val_loader:
-	X, Y = Variable(batch["X"]), Variable(batch["Y"],requires_grad=False).squeeze()
+	X, Y = Variable(batch["X"]).squeeze(), Variable(batch["Y"],requires_grad=False).squeeze()
 	pdb.set_trace()
 	val_preds = model(X)
