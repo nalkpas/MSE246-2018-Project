@@ -17,6 +17,7 @@ ByteTensor = torch.ByteTensor
 
 # hyperparameters
 n_layers = 3
+k = 2
 
 # process data
 train_data = pd.read_csv("data/random_train0314.csv")
@@ -86,12 +87,12 @@ val_loader = torch.utils.data.DataLoader(val_set, batch_size=100, shuffle=False,
 
 # initialize model
 layers_size = {-1: n_in}
-factor = (n_out/n_in)**(1/(n_layers))
+factor = (n_out/k/n_in)**(1/(n_layers - 1))
 for layer in range(n_layers):
-	layers_size[layer] = int(np.rint(n_in * factor**(layer + 1)))
-modules = []
+	layers_size[layer] = int(np.rint(k*n_in * factor**(layer)))
 print(layers_size)
 
+modules = []
 for i in layers_size.keys():
 	if i == -1: continue
 	modules.append(nn.Linear(layers_size[i-1],layers_size[i]))
@@ -120,5 +121,5 @@ model.eval()
 
 for batch in val_loader:
 	X, Y = Variable(batch["X"]).squeeze(), Variable(batch["Y"],requires_grad=False).squeeze()
+	val_preds = nn.Softmax()(model(X))
 	pdb.set_trace()
-	val_preds = model(X)

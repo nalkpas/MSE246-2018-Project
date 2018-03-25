@@ -15,6 +15,13 @@ FloatTensor = torch.FloatTensor
 LongTensor = torch.LongTensor
 ByteTensor = torch.ByteTensor
 
+# hyperparameters
+n_layers = 7
+decay = 0.1
+batch_size = 20
+k = 2
+num_epochs = 5
+
 # process data
 train_data = pd.read_csv("data/random_train0314.csv")
 test_data = pd.read_csv("data/random_test0314.csv")
@@ -73,12 +80,10 @@ class DefaultDataset(Dataset):
 		sample = {"X": covariates, "Y": defaults}
 		return sample
 
-# hyperparameters
-n_layers = 3
+# shape data
 n_out = 2.
 n_in = x_train.shape[1]
-decay = 0.1
-batch_size = 20
+
 
 # load data
 train_set = DefaultDataset(x_train, y_train)
@@ -86,20 +91,19 @@ train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shu
 
 # define model
 layers_size = {-1: n_in}
-factor = (n_out/n_in)**(1/(n_layers))
+factor = (n_out/k/n_in)**(1/(n_layers - 1))
 for layer in range(n_layers):
-	layers_size[layer] = int(np.rint(n_in * factor**(layer + 1)))
-modules = []
+	layers_size[layer] = int(np.rint(k*n_in * factor**(layer)))
 print(layers_size)
 
+modules = []
 for i in layers_size.keys():
 	if i == -1: continue
 	modules.append(nn.Linear(layers_size[i-1],layers_size[i]))
 	if i < n_layers - 1:
-		modules.append(nn.Dropout(0.15))
-	modules.append(nn.BatchNorm1d(layers_size[i]))
-	if i < n_layers - 1:
+		modules.append(nn.BatchNorm1d(layers_size[i]))
 		modules.append(nn.ReLU())
+		modules.append(nn.Dropout(0.15))
 
 class Net(nn.Module):
 	def __init__(self, modules):
@@ -115,7 +119,7 @@ class Net(nn.Module):
 # initialize model
 model = Net(modules)
 try: 
-	model.load_state_dict(torch.load("models/default_net_" + str(n_layers) + ".pt"))
+	model.load_state_dict(torch.load("models/default_net_" + str(n_layers) + "-" + str(k) + ".pt"))
 	print("loaded saved model")
 except:
 	print("no saved model")
@@ -125,7 +129,6 @@ optimizer = optim.Adam(params=model.parameters(), lr=0.0001, weight_decay=decay)
 model.train()
 
 # training
-num_epochs = 5
 print_interval = 100
 iterations = [0]
 losses = []
@@ -137,10 +140,9 @@ for epoch in range(num_epochs):
 
 		predictions = model(X)
 		loss = criterion(predictions, Y)
-		if epoch == 1 and i == 0:
-			pdb.set_trace()
-		if epoch == 4:
-			pdb.set_trace()
+		# if epoch == 4:
+		# 	fu = list(model.parameters())
+		# 	pdb.set_trace()
 		if i == 0: 
 			losses.append(loss.data[0])
 
@@ -157,8 +159,8 @@ for epoch in range(num_epochs):
 			running_loss = 0.
 end = time.time()
 
-torch.save(model.state_dict(), "models/default_net_" + str(n_layers) + ".pt")
-with open("loss_graphs/default_net_" + str(n_layers) + ".csv", "w") as file:
+torch.save(model.state_dict(), "models/default_net_" + str(n_layers) + "-" + str(k) + ".pt")
+with open("loss_graphs/default_net_" + str(n_layers) + "-" + str(k) + ".csv", "w") as file:
 	file.write("iteration,loss\n")
 	for iteration, loss in zip(iterations, losses):
 		file.write(str(iteration) + "," + str(loss) + "\n")
