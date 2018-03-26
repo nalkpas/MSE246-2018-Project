@@ -4,7 +4,7 @@ This project implements and compares a number of different models for predicting
 
 ## Data Processing
 
-The __data_processed_final__ folder contains our final processed data, created with __data_processed_hujia.ipynb__. __data_exploration.ipynb__ contains code for preliminary analysis and generating exploratory graphs. These graphs can be found in the __graphs__ folder. 
+The __data_processed_final__ folder contains our final processed data, created with __data_processed_hujia.ipynb__. __data_exploration.ipynb__ contains code for preliminary analysis and generating exploratory graphs.
 
 ## Logistic Model
 
@@ -20,4 +20,4 @@ The hazard model is in the __hazard_lifelines_michelle.ipynb__ notebook in the _
 
 ## Loss Model
 
-The loss model is in the __loss__ folder, in __loss_model_michelle.ipynb__. The __1_and_5_year_loss_michelle.ipynb__ notebook contains the tranche loss simulation code. 
+The loss model is in the __loss__ folder, in __loss_model_michelle.ipynb__. The __1_and_5_year_loss_michelle.ipynb__ notebook contains the tranche loss simulation code. Generated graphs in said notebook were also screenshotted and placed in the __graphs__ folder. 
