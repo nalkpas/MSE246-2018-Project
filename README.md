@@ -8,15 +8,15 @@ The __data_processed_final__ folder contains our final processed data, created w
 
 ## Logistic Model
 
-The __logistic model.ipynb__ notebook in __logistic_model__ folder contains the code for tuning and analyzing our logistic model. __logistic_roc.csv__ is the validation ROC curve. 
+The __logistic model.ipynb__ notebook in __logistic_model__ folder contains code for tuning and analyzing our logistic model. __logistic_roc.csv__ is the validation ROC curve. 
 
 ## Neural Network
 
-The __neural_network__ folder contains our attempts at implementing a binary classification neural network. __NNprocessing.py__ contains neural network-specific preprocessing. __static_net.py__ and __dynamic_net.py__ are first attempts, exploring PyTorch's support for dynamic computational graphs. __default_net.py__ contains our final implementation, which uses batch normalization, dropout, and Adam gradient descent. __nn_eval.py__ analyzes our model parameters and tests its validation performance. Unfortunately, were were unable to implement a full functioning neural network. 
+The __neural_network__ folder contains our attempts at implementing a binary classification neural network. __NNprocessing.py__ contains neural network-specific preprocessing. __static_net.py__ and __dynamic_net.py__ are first attempts, exploring PyTorch's support for dynamic computational graphs. __default_net.py__ contains our final implementation, which uses batch normalization, dropout, and Adam gradient descent. __nn_eval.py__ analyzes our model parameters and tests its validation performance. Unfortunately, were were unable to implement a fully functioning neural network. 
 
 ## Hazard Model
 
-The hazard model is in the __data_processed_final__ folder, in the __hazard_lifelines_michelle.ipynb__ notebook. 
+The hazard model is in the __hazard_lifelines_michelle.ipynb__ notebook in the __data_processed_final__ folder. 
 
 ## Loss Model
 
