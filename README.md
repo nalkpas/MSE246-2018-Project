@@ -16,7 +16,7 @@ The __neural_network__ folder contains our attempts at implementing a binary cla
 
 ## Hazard Model
 
-The hazard model is in the __data_processed_final__ folder, contained in the __hazard_lifelines_michelle.ipynb__ notebook. 
+The hazard model is in the __data_processed_final__ folder, in the __hazard_lifelines_michelle.ipynb__ notebook. 
 
 ## Loss Model
 
