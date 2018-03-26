@@ -20,4 +20,4 @@ The hazard model is in the __data_processed_final__ folder, in the __hazard_life
 
 ## Loss Model
 
-The loss model is in the __loss__ folder, in __loss_model_michelle.ipynb__. __1_and_5_year_loss_michelle.ipynb__ contains the tranche loss simulation code. 
+The loss model is in the __loss__ folder, in __loss_model_michelle.ipynb__. The __1_and_5_year_loss_michelle.ipynb__ notebook contains the tranche loss simulation code. 
